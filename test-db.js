@@ -15,3 +15,4 @@ mongoose.connect(dbUri)
         console.error("✗ MongoDB connection failed:", err.message);
         process.exit(1);
     });
+
