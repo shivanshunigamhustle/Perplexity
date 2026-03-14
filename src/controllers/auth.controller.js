@@ -24,9 +24,10 @@ export async function register(req, res) {
     const emailVerificationToken = jwt.sign(
         {
             email: user.email
-
-
-        },);
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+    );
     await sendEmail({
         to: email,
         subject: "Welcome to Perplexity!",
@@ -151,4 +152,4 @@ export async function verifyEmail(req, res) {
     }
 
 
-}     
+}

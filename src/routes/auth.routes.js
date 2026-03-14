@@ -25,7 +25,7 @@ authRouter.post("/login", loginValidator,login);
  * @desc Get current logged in user details
  * @access Private
  */
-authRouter.get("/get-me", getMe);
+authRouter.get("/get-me",authUser, getMe);
 /**
  * @route GET /api/auth/verify-email
  * @desc Verify user's email address
