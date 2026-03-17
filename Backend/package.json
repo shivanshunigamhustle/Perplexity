@@ -4,10 +4,13 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "npx nodemon server.js",
     "start": "node server.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@langchain/google-genai": "^2.1.25",
+    "@langchain/mistralai": "^1.0.7",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cord": "^1.0.1",
@@ -16,6 +19,7 @@
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
     "jsonwebtoken": "^9.0.3",
+    "langchain": "^1.2.32",
     "mongoose": "^9.3.0",
     "morgan": "^1.10.1",
     "nodemailer": "^8.0.2",
