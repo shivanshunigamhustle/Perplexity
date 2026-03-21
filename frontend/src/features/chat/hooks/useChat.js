@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from 'react'
-import { socket, initializeSocketConnection, getChats, sendMessage, onMessageResponse, offMessageResponse } from "../service/chat.socket"
-import { setChats, setCurrentChatId, createNewChat, addNewMessage } from '../chat.slice'
+import { socket, initializeSocketConnection, getChats, getMessages, sendMessage, sendImage, onMessageResponse, offMessageResponse, onImageUserMessage, offImageUserMessage } from "../service/chat.socket"
+import { setChats, setCurrentChatId, createNewChat, addNewMessage, addMessages } from '../chat.slice'
 
 export const useChat = () => {
     const dispatch = useDispatch()
@@ -10,41 +10,31 @@ export const useChat = () => {
 
     useEffect(() => {
         onMessageResponse(({ chat, title, aiMessage }) => {
-            console.log("message_response received:", { chat, title, aiMessage })
-
             const activeChatId = chat?._id || currentChatId
-
-            if (chat) {
-                dispatch(createNewChat({ chatId: chat._id, title: chat.title }))
-            }
-
-            dispatch(addNewMessage({
-                chatId: activeChatId,
-                content: aiMessage.content,
-                role: "ai"
-            }))
-
+            if (chat) dispatch(createNewChat({ chatId: chat._id, title: chat.title }))
+            dispatch(addNewMessage({ chatId: activeChatId, content: aiMessage.content, role: "ai" }))
             dispatch(setCurrentChatId(activeChatId))
         })
 
-        return () => offMessageResponse()
+        onImageUserMessage(({ chatId, content, imageUrl }) => {
+            dispatch(addNewMessage({ chatId, content, role: "user", imageUrl }))
+        })
+
+        return () => {
+            offMessageResponse()
+            offImageUserMessage()
+        }
     }, [currentChatId])
 
     const handleGetChats = async () => {
-        console.log("handleGetChats called, user:", user)
         if (!user) return
 
         if (!socket.connected) {
-            console.log("Socket not connected, waiting for connect...")
             socket.once("connect", async () => {
-                console.log("Socket connected, now getting chats")
                 const chats = await getChats(user._id)
-                console.log("chats received:", chats)
                 if (chats) {
                     const chatsMap = {}
-                    chats.forEach(chat => {
-                        chatsMap[chat._id] = { ...chat, messages: [] }
-                    })
+                    chats.forEach(chat => { chatsMap[chat._id] = { ...chat, messages: [] } })
                     dispatch(setChats(chatsMap))
                 }
             })
@@ -52,45 +42,43 @@ export const useChat = () => {
         }
 
         const chats = await getChats(user._id)
-        console.log("chats received:", chats)
         if (chats) {
             const chatsMap = {}
-            chats.forEach(chat => {
-                chatsMap[chat._id] = { ...chat, messages: [] }
-            })
+            chats.forEach(chat => { chatsMap[chat._id] = { ...chat, messages: [] } })
             dispatch(setChats(chatsMap))
         }
     }
 
-    const handleOpenChat = (chatId) => {
+    const handleOpenChat = async (chatId) => {
         dispatch(setCurrentChatId(chatId))
+        if (!chatId || !socket.connected) return
+        const messages = await getMessages(chatId)
+        if (messages) dispatch(addMessages({ chatId, messages }))
     }
 
     const handleSendMessage = (message) => {
-        console.log("handleSendMessage called, user:", user?._id)
-        console.log("currentChatId:", currentChatId)
-        console.log("Socket connected?", socket.connected)
-
-        if (!user) {
-            console.log("NO USER - returning")
-            return
+        if (!user || !socket.connected) return
+        if (currentChatId) {
+            dispatch(addNewMessage({ chatId: currentChatId, content: message, role: "user" }))
         }
+        sendMessage(message, currentChatId, user._id)
+    }
 
-        if (!socket.connected) {
-            console.log("Socket not connected - returning")
-            return
-        }
+    const handleSendImage = (base64Image, mimeType, userPrompt) => {
+        if (!user || !socket.connected) return
+
+        const previewUrl = `data:${mimeType};base64,${base64Image}`
 
         if (currentChatId) {
             dispatch(addNewMessage({
                 chatId: currentChatId,
-                content: message,
-                role: "user"
+                content: userPrompt || "Describe this image",
+                role: "user",
+                imageUrl: previewUrl
             }))
         }
 
-        console.log("Emitting send_message to socket...")
-        sendMessage(message, currentChatId, user._id)
+        sendImage(base64Image, mimeType, userPrompt, currentChatId, user._id)
     }
 
     return {
@@ -98,5 +86,6 @@ export const useChat = () => {
         handleGetChats,
         handleOpenChat,
         handleSendMessage,
+        handleSendImage,
     }
 }

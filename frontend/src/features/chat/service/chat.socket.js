@@ -15,14 +15,23 @@ export const initializeSocketConnection = () => {
 export const getChats = (userId) => {
     return new Promise((resolve) => {
         socket.emit("get_chats", userId)
-        socket.once("chats", (chats) => {
-            resolve(chats)
-        })
+        socket.once("chats", (chats) => resolve(chats))
+    })
+}
+
+export const getMessages = (chatId) => {
+    return new Promise((resolve) => {
+        socket.emit("get_messages", { chatId })
+        socket.once("messages", ({ messages }) => resolve(messages))
     })
 }
 
 export const sendMessage = (message, chatId, userId) => {
     socket.emit("send_message", { message, chatId, userId })
+}
+
+export const sendImage = (base64Image, mimeType, userPrompt, chatId, userId) => {
+    socket.emit("send_image", { base64Image, mimeType, userPrompt, chatId, userId })
 }
 
 export const onMessageResponse = (callback) => {
@@ -31,4 +40,12 @@ export const onMessageResponse = (callback) => {
 
 export const offMessageResponse = () => {
     socket.off("message_response")
+}
+
+export const onImageUserMessage = (callback) => {
+    socket.on("image_user_message", callback)
+}
+
+export const offImageUserMessage = () => {
+    socket.off("image_user_message")
 }

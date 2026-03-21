@@ -11,6 +11,7 @@
     "@google/generative-ai": "^0.24.1",
     "@langchain/google-genai": "^2.1.26",
     "@langchain/mistralai": "^1.0.7",
+    "@tavily/core": "^0.7.2",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cord": "^1.0.1",

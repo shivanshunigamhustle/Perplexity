@@ -19,9 +19,8 @@ const chatSlice = createSlice({
             }
         },
         addNewMessage: (state, action) => {
-            const { chatId, content, role } = action.payload
+            const { chatId, content, role, imageUrl } = action.payload
 
-            // Agar chat exist nahi karta toh pehle banao
             if (!state.chats[chatId]) {
                 state.chats[chatId] = {
                     id: chatId,
@@ -31,7 +30,7 @@ const chatSlice = createSlice({
                 }
             }
 
-            state.chats[chatId].messages.push({ content, role })
+            state.chats[chatId].messages.push({ content, role, imageUrl: imageUrl || null })
         },
         addMessages: (state, action) => {
             const { chatId, messages } = action.payload
