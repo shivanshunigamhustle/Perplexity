@@ -10,6 +10,7 @@ export const useChat = () => {
 
     useEffect(() => {
         onMessageResponse(({ chat, title, aiMessage }) => {
+            console.log("message_response received:", { chat, title, aiMessage })
             const activeChatId = chat?._id || currentChatId
             if (chat) dispatch(createNewChat({ chatId: chat._id, title: chat.title }))
             dispatch(addNewMessage({ chatId: activeChatId, content: aiMessage.content, role: "ai" }))
@@ -17,6 +18,7 @@ export const useChat = () => {
         })
 
         onImageUserMessage(({ chatId, content, imageUrl }) => {
+            console.log("image_user_message received:", { chatId, content })
             dispatch(addNewMessage({ chatId, content, role: "user", imageUrl }))
         })
 
@@ -58,14 +60,18 @@ export const useChat = () => {
 
     const handleSendMessage = (message) => {
         if (!user || !socket.connected) return
+        console.log("Sending message, userId:", user._id)
+
         if (currentChatId) {
             dispatch(addNewMessage({ chatId: currentChatId, content: message, role: "user" }))
         }
+
         sendMessage(message, currentChatId, user._id)
     }
 
     const handleSendImage = (base64Image, mimeType, userPrompt) => {
         if (!user || !socket.connected) return
+        console.log("Sending image, userId:", user._id, "chatId:", currentChatId)
 
         const previewUrl = `data:${mimeType};base64,${base64Image}`
 
