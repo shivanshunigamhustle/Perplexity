@@ -8,7 +8,10 @@ let io;
 export function initSocket(httpServer) {
     io = new Server(httpServer, {
         cors: {
-            origin: process.env.FRONTEND_URL || "http://localhost:5173",
+            origin: [
+                "http://localhost:5173",
+                "https://perplexity-xi.vercel.app",
+            ],
             methods: ["GET", "POST"],
             credentials: true,
             allowedHeaders: ["Content-Type", "Authorization"]
