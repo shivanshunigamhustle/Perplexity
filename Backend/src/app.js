@@ -16,7 +16,7 @@ app.use(cors({
     origin: [
         "http://localhost:5173",
         "https://perplexity-v5uu.onrender.com",
-        "https://your-app.vercel.app",  // ← Vercel deploy hone ke baad real URL se replace karna
+       "https://perplexity-xi.vercel.app",  // ← Vercel deploy hone ke baad real URL se replace karna
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
