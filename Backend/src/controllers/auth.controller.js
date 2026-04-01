@@ -1,3 +1,14 @@
+export async function logout(req, res) {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none"
+    });
+    res.status(200).json({
+        message: "Logout successful",
+        success: true
+    });
+}
 import userModel from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mail.service.js";

@@ -7,6 +7,7 @@ function App() {
    const auth = useAuth()
 
   useEffect(() => {
+    // Try to fetch user data if already logged in
     auth.handleGetMe()
   }, [])
   return <RouterProvider router={router} />

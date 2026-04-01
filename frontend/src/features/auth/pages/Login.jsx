@@ -1,35 +1,34 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, Navigate } from 'react-router'
 import { useAuth } from '../hook/useAuth'
 import { useSelector } from 'react-redux'
-import { Navigate } from 'react-router'
 
 
 const Login = () => {
-    const [ email, setEmail ] = useState('')
-    const [ password, setPassword ] = useState('')
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [errorMsg, setErrorMsg] = useState('')  // ✅ error dikhane ke liye
 
     const user = useSelector(state => state.auth.user)
     const loading = useSelector(state => state.auth.loading)
 
     const { handleLogin } = useAuth()
-
     const navigate = useNavigate()
 
     const submitForm = async (event) => {
         event.preventDefault()
+        setErrorMsg('')  // pehle purana error clear karo
 
-        const payload = {
-            email,
-            password,
+        try {
+            await handleLogin({ email, password })
+            navigate("/")  // ✅ sirf success pe navigate hoga
+        } catch (error) {
+            // ✅ error UI pe dikhega, navigate nahi hoga
+            setErrorMsg(error.response?.data?.message || "Login failed. Please try again.")
         }
-
-        await handleLogin(payload)
-        navigate("/")
-
     }
 
-    if(!loading && user){
+    if (!loading && user) {
         return <Navigate to="/" replace />
     }
 
@@ -44,6 +43,13 @@ const Login = () => {
                         Sign in with your email and password.
                     </p>
 
+                    {/* ✅ Error message box */}
+                    {errorMsg && (
+                        <div className="mt-4 rounded-lg bg-red-500/20 border border-red-500/40 px-4 py-3 text-sm text-red-400">
+                            {errorMsg}
+                        </div>
+                    )}
+
                     <form onSubmit={submitForm} className="mt-8 space-y-5">
                         <div>
                             <label htmlFor="email" className="mb-2 block text-sm font-medium text-zinc-200">
@@ -53,7 +59,7 @@ const Login = () => {
                                 id="email"
                                 type="email"
                                 value={email}
-                                onChange={(event) => setEmail(event.target.value)}
+                                onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@example.com"
                                 required
                                 className="w-full rounded-lg border border-zinc-700 bg-zinc-950/80 px-4 py-3 text-zinc-100 outline-none ring-0 transition focus:border-[#31b8c6] focus:shadow-[0_0_0_3px_rgba(49,184,198,0.25)]"
@@ -68,7 +74,7 @@ const Login = () => {
                                 id="password"
                                 type="password"
                                 value={password}
-                                onChange={(event) => setPassword(event.target.value)}
+                                onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Enter your password"
                                 required
                                 className="w-full rounded-lg border border-zinc-700 bg-zinc-950/80 px-4 py-3 text-zinc-100 outline-none ring-0 transition focus:border-[#31b8c6] focus:shadow-[0_0_0_3px_rgba(49,184,198,0.25)]"
@@ -77,9 +83,10 @@ const Login = () => {
 
                         <button
                             type="submit"
-                            className="w-full rounded-lg bg-[#31b8c6] px-4 py-3 font-semibold text-zinc-950 transition hover:bg-[#45c7d4] focus:outline-none focus:shadow-[0_0_0_3px_rgba(49,184,198,0.35)]"
+                            disabled={loading}  // ✅ loading mein double click nahi hoga
+                            className="w-full rounded-lg bg-[#31b8c6] px-4 py-3 font-semibold text-zinc-950 transition hover:bg-[#45c7d4] focus:outline-none focus:shadow-[0_0_0_3px_rgba(49,184,198,0.35)] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            Login
+                            {loading ? "Logging in..." : "Login"}  {/* ✅ loading state */}
                         </button>
                     </form>
 

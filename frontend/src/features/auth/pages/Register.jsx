@@ -1,13 +1,22 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
+import { useAuth } from '../hook/useAuth'
 
 const Register = () => {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const { handleRegister } = useAuth()
+  const navigate = useNavigate()
 
-  const submitForm = (event) => {
+  const submitForm = async (event) => {
     event.preventDefault()
+    setSuccessMessage('')
+    setErrorMessage('')
+    setLoading(true)
 
     const payload = {
       username,
@@ -15,7 +24,21 @@ const Register = () => {
       password,
     }
 
-    console.log('Register payload:', payload)
+    try {
+      console.log('Register payload:', payload)
+      await handleRegister(payload)
+      setSuccessMessage('✅ Registration successful! Please check your email to verify your account.')
+      setUsername('')
+      setEmail('')
+      setPassword('')
+      setTimeout(() => navigate('/login'), 2000)
+    } catch (error) {
+      console.error('Registration failed:', error)
+      const errorMsg = error.response?.data?.message || error.response?.data?.errors?.[0]?.msg || 'Registration failed'
+      setErrorMessage(`❌ ${errorMsg}`)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -28,6 +51,18 @@ const Register = () => {
           <p className="mt-2 text-sm text-zinc-300">
             Register with your username, email, and password.
           </p>
+
+          {successMessage && (
+            <div className="mt-4 rounded-lg bg-green-500/20 p-3 text-sm text-green-300 border border-green-500/30">
+              {successMessage}
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="mt-4 rounded-lg bg-red-500/20 p-3 text-sm text-red-300 border border-red-500/30">
+              {errorMessage}
+            </div>
+          )}
 
           <form onSubmit={submitForm} className="mt-8 space-y-5">
             <div>
@@ -77,9 +112,10 @@ const Register = () => {
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-[#31b8c6] px-4 py-3 font-semibold text-zinc-950 transition hover:bg-[#45c7d4] focus:outline-none focus:shadow-[0_0_0_3px_rgba(49,184,198,0.35)]"
+              disabled={loading}
+              className="w-full rounded-lg bg-[#31b8c6] px-4 py-3 font-semibold text-zinc-950 transition hover:bg-[#45c7d4] focus:outline-none focus:shadow-[0_0_0_3px_rgba(49,184,198,0.35)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Register
+              {loading ? 'Registering...' : 'Register'}
             </button>
           </form>
 

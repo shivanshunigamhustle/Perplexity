@@ -2,12 +2,16 @@ import React, { useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useSelector } from 'react-redux'
 import { useChat } from '../hooks/useChat'
+import { useAuth } from '../../auth/hook/useAuth'
+import { useNavigate } from 'react-router'
 
 const Dashboard = () => {
     const chat = useChat()
+    const { handleLogout } = useAuth()
+    const navigate = useNavigate()
     const [chatInput, setChatInput] = React.useState('')
     const [isTyping, setIsTyping] = React.useState(false)
-    const [selectedImage, setSelectedImage] = React.useState(null) // { base64, mimeType, preview }
+    const [selectedImage, setSelectedImage] = React.useState(null)
     const chats = useSelector((state) => state.chat.chats)
     const currentChatId = useSelector((state) => state.chat.currentChatId)
     const user = useSelector((state) => state.auth.user)
@@ -58,6 +62,16 @@ const Dashboard = () => {
 
     const openChat = (chatId) => {
         chat.handleOpenChat(chatId)
+    }
+
+    // ✅ Logout handler
+    const onLogout = async () => {
+        try {
+            await handleLogout()
+            navigate("/login")
+        } catch (error) {
+            console.error("Logout failed:", error)
+        }
     }
 
     const currentMessages = currentChatId ? (chats[currentChatId]?.messages || []) : []
@@ -233,6 +247,9 @@ const Dashboard = () => {
                 .sidebar-footer {
                     padding: 16px 24px;
                     border-top: 1px solid var(--border);
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
                 }
 
                 .user-info {
@@ -262,6 +279,34 @@ const Dashboard = () => {
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
+                    flex: 1;
+                }
+
+                /* ✅ Logout button styles */
+                .logout-btn {
+                    width: 100%;
+                    padding: 9px 14px;
+                    background: transparent;
+                    border: 1px solid rgba(252, 129, 129, 0.25);
+                    border-radius: 8px;
+                    color: rgba(252, 129, 129, 0.7);
+                    font-family: var(--font-display);
+                    font-size: 12px;
+                    font-weight: 600;
+                    letter-spacing: 0.5px;
+                    cursor: pointer;
+                    text-transform: uppercase;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 7px;
+                }
+
+                .logout-btn:hover {
+                    background: rgba(252, 129, 129, 0.1);
+                    border-color: rgba(252, 129, 129, 0.6);
+                    color: #fc8181;
                 }
 
                 .main {
@@ -455,7 +500,6 @@ const Dashboard = () => {
                     margin: 0 auto;
                 }
 
-                /* Image preview */
                 .image-preview-box {
                     display: flex;
                     align-items: center;
@@ -626,6 +670,7 @@ const Dashboard = () => {
                         ))}
                     </div>
 
+                    {/* ✅ Sidebar Footer with Logout */}
                     <div className="sidebar-footer">
                         <div className="user-info">
                             <div className="user-avatar">
@@ -633,6 +678,16 @@ const Dashboard = () => {
                             </div>
                             <div className="user-name">{user?.username || 'User'}</div>
                         </div>
+
+                        {/* ✅ Logout Button */}
+                        <button className="logout-btn" onClick={onLogout} type="button">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/>
+                                <line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                            Logout
+                        </button>
                     </div>
                 </aside>
 
@@ -656,7 +711,6 @@ const Dashboard = () => {
                                             {message.role === 'user' ? 'You' : 'AI'}
                                         </div>
                                         <div className="message-bubble">
-                                            {/* Image show karo agar hai */}
                                             {message.imageUrl && (
                                                 <img
                                                     src={message.imageUrl}
@@ -703,7 +757,6 @@ const Dashboard = () => {
                     <div className="input-area">
                         <div className="input-inner">
 
-                            {/* Image preview */}
                             {selectedImage && (
                                 <div className="image-preview-box">
                                     <img src={selectedImage.preview} alt="preview" className="image-preview-thumb" />
@@ -720,7 +773,6 @@ const Dashboard = () => {
 
                             <form onSubmit={handleSubmitMessage}>
                                 <div className="input-box">
-                                    {/* Hidden file input */}
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -729,7 +781,6 @@ const Dashboard = () => {
                                         onChange={handleImageSelect}
                                     />
 
-                                    {/* Upload button */}
                                     <button
                                         type="button"
                                         className={`upload-btn ${selectedImage ? 'has-image' : ''}`}
