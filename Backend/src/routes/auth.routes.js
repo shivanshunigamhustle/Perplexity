@@ -3,6 +3,7 @@ import { Router } from "express";
 import { register, verifyEmail,login,getMe, logout } from "../controllers/auth.controller.js";
 import { registerValidator ,loginValidator} from "../validators/auth.validator.js";
 import { authUser } from "../middleware/auth.middleware.js";
+import userModel from "../models/user.model.js";
 const authRouter = Router();
 
 /**
@@ -40,13 +41,45 @@ authRouter.get("/get-me",authUser, getMe);
  * @access Public
  * @query { token }
  */
+authRouter.get("/verify-email", verifyEmail );
 
-
-
-
-authRouter.get("/verify-email", verifyEmail )
-
-
-
+/**
+ * @route GET /api/auth/verify-manual/:email
+ * @desc Manual verification for testing (development only)
+ * @access Public
+ */
+authRouter.get("/verify-manual/:email", async (req, res) => {
+    try {
+        const user = await userModel.findOneAndUpdate(
+            { email: req.params.email },
+            { verified: true },
+            { new: true }
+        );
+        
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+                success: false
+            });
+        }
+        
+        res.json({
+            message: "✅ Email verified successfully",
+            success: true,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                verified: user.verified
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Verification failed",
+            success: false,
+            err: error.message
+        });
+    }
+});
 
 export default authRouter;

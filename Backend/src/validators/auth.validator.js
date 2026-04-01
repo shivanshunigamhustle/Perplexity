@@ -4,7 +4,12 @@ import { body, validationResult } from "express-validator";
 export function validate(req, res, next) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        console.error("❌ Validation errors:", errors.array());
+        console.error("Request body:", req.body);
+        return res.status(400).json({ 
+            errors: errors.array(),
+            message: errors.array().map(e => e.msg).join(", ")
+        });
     }
     next();
 }
