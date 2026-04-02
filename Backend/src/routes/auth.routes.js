@@ -3,6 +3,7 @@ import { Router } from "express";
 import { register, verifyEmail,login,getMe, logout } from "../controllers/auth.controller.js";
 import { registerValidator ,loginValidator} from "../validators/auth.validator.js";
 import { authUser } from "../middleware/auth.middleware.js";
+import { getEmailStatus } from "../services/mail.service.js";
 import userModel from "../models/user.model.js";
 const authRouter = Router();
 
@@ -42,6 +43,20 @@ authRouter.get("/get-me",authUser, getMe);
  * @query { token }
  */
 authRouter.get("/verify-email", verifyEmail );
+
+/**
+ * @route GET /api/auth/email-status
+ * @desc Check email configuration status (debugging)
+ * @access Public
+ */
+authRouter.get("/email-status", (req, res) => {
+    const status = getEmailStatus();
+    res.json({
+        message: "Email service status",
+        success: true,
+        status
+    });
+});
 
 /**
  * @route GET /api/auth/verify-manual/:email

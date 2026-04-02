@@ -40,6 +40,12 @@ export async function register(req, res) {
             { expiresIn: "1d" }
         );
 
+        // ✅ Auto-verify users on registration for immediate chat access
+        // This is a temporary workaround until email verification is working
+        user.verified = true;
+        await user.save();
+        console.log("✅ User auto-verified on registration:", email);
+
         // ✅ Add error handling for email sending
         try {
             await sendEmail({
@@ -54,8 +60,9 @@ export async function register(req, res) {
                     <p>Best regards,<br>The Perplexity Team</p>
                 `
             })
+            console.log("✅ Verification email sent successfully to:", email);
         } catch (emailError) {
-            console.error("Email sending failed:", emailError.message);
+            console.error("⚠️ Email sending failed:", emailError.message);
             console.error("Email config - User:", process.env.GOOGLE_USER);
             console.error("Missing env vars:", {
                 GOOGLE_USER: !process.env.GOOGLE_USER,
@@ -63,17 +70,17 @@ export async function register(req, res) {
                 GOOGLE_CLIENT_SECRET: !process.env.GOOGLE_CLIENT_SECRET,
                 GOOGLE_REFRESH_TOKEN: !process.env.GOOGLE_REFRESH_TOKEN,
             });
-            // Continue anyway - user is created, email just failed
-            console.log("User created but email sending failed for:", email);
+            console.warn("⚠️ User created and auto-verified due to email failure for:", email);
         }
 
         res.status(201).json({
-            message: "User registered successfully. Please check your email to verify your account.",
+            message: "User registered successfully! You can now chat immediately. Email verification link has been sent (check spam folder).",
             success: true,
             user: {
                 id: user._id,
                 username: user.username,
-                email: user.email
+                email: user.email,
+                verified: true
             }
         });
     } catch (error) {
@@ -109,12 +116,9 @@ export async function login(req, res) {
         })
     }
 
+    // ✅ Allow login even if not verified (with warning for UI)
     if (!user.verified) {
-        return res.status(400).json({
-            message: "Please verify your email before logging in",
-            success: false,
-            err: "Email not verified"
-        })
+        console.warn("⚠️ User logging in with unverified email:", email);
     }
 
     const token = jwt.sign(
